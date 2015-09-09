@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require 'json_q_l'
+
+file_path = File.dirname(__FILE__) + "/../" + ARGV.first
+puts file_path
+executor = JsonQL::Executor.new(file: File.read(file_path))
+
+while line = Readline.readline('jql~>  ', true)
+  begin
+    puts executor.execute(line)
+  rescue
+    puts "Hmm something went wrong"
+  end
+end
