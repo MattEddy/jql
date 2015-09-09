@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 
 require 'json_q_l'
+require 'json'
 
 file_path = File.dirname(__FILE__) + "/../" + ARGV.first
 puts file_path
-executor = JsonQL::Executor.new(file: File.read(file_path))
+executor = JsonQL::Executor.new(dataset: JSON.parse(File.read(file_path)))
 
 while line = Readline.readline('jql~>  ', true)
   begin

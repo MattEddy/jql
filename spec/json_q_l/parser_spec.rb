@@ -2,47 +2,58 @@ require 'spec_helper'
 
 module JsonQL
   describe Parser do
-    describe "#initialize" do
-      it "throws an error if the first token is not select" do
-        expect { described_class.new('cats from') }.to raise_error(ParseError)
-      end
 
-      it "doesn't throw an error if it starts with select" do
-        expect { described_class.new("select from") }.not_to raise_error
-      end
+    let(:test_json) do
+      JSON.parse(File.read(File.dirname(__FILE__) + '/../fixtures/events.json'))
+    end
 
-      it "throws an error if the tokens don't contain a from" do
-        expect { described_class.new('select cats') }.to raise_error(ParseError)
-      end
 
-      it "doesn't throw an error if the tokens do contain a from" do
-        expect { described_class.new('select from') }.not_to raise_error
+    describe "#table_select" do
+      let(:instance)   { described_class.new(test_query) }
+      let(:test_query) { "SELECT * FROM events" }
+
+      it "should select the appropriate table" do
+        expect(instance.table_select.call(test_json)).to eq test_json['events']
       end
     end
 
-    describe "#columns" do
-      let(:parser) { Parser.new('select cats dogs from') }
+    describe "filter_conditions_from_tokens" do
+      let(:test_query) { "SELECT * FROM events WHERE 1 < age" }
+      let(:instance)   { described_class.new(test_query) }
 
-      it "returns all tokens between the select and the from" do
-        expect(parser.columns).to eq ['cats', 'dogs']
+      it "should call '.create_from_tokens' with condition tokens" do
+        expect(Condition).to receive(:create_from_tokens).with(["1", "<", "age"])
+        described_class.new(test_query).filter_conditions_from_tokens
       end
     end
 
-    describe "#conditions" do
-      it "builds conditions if they are provided" do
-        sentinel = double(create_from_tokens: "some_condition")
-        stub_const('JsonQL::Condition', sentinel)
-
-        expect(sentinel).to receive(:create_from_tokens).with(["1", "<", "age"])
-        described_class.new("select cats from pets where 1 < age").conditions
+    describe "#column_select" do
+      it "should select all columns" do
+        expect(described_class.new("SELECT * FROM events")
+          .column_select
+          .call(test_json['events']))
+          .to eq [
+            {"occasion"=> [
+              "Birthday party",
+              "Technical discussion",
+              "Press release",
+              "New year party"
+            ]},
+            {"invited_count"=>[120, 23, 64, 55]},
+            {"year"=>[2015, 2015, 2015, 2016]},
+            {"month"=>[3, 4, 6, 1]},
+            {"day"=>[14, 24, 7, 1]}
+          ]
       end
-    end
 
-    describe "#table_name" do
-      let(:parser) { Parser.new('select cats dogs from pets') }
-
-      it "returns the token after from" do
-        expect(parser.table_name).to eq 'pets'
+      it "should select all specific columns" do
+        expect(described_class.new("SELECT invited_count year FROM events")
+          .column_select
+          .call(test_json['events']))
+          .to eq [
+            {"invited_count"=>[120, 23, 64, 55]},
+            {"year"=>[2015, 2015, 2015, 2016]}
+          ]
       end
     end
   end
