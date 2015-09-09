@@ -1,17 +1,31 @@
 module JsonQL
   class Condition < Proc
-    # a condition is a proc that can be run against some input data
-    # evaluates to true or false
-    # select * from users where name == matt
-
     def self.create_from_tokens(tokens)
-      instance = new { |argument|
-        eval(tokens.first + ' = argument;' + tokens.join(" "))
-      }
+      instance = new { |table|
+        set_variables = (available_keys(table) & tokens).map do |required_datum|
+          if table[required_datum]
+            required_datum + convert_type_if_needed(table[required_datum])
+          end
+        end
 
-      {
-        tokens.first => instance
+        eval((set_variables + tokens).join(" "))
       }
+    end
+
+    class << self
+      private
+
+      def convert_type_if_needed(value)
+        if value.is_a?(Numeric)
+          " = #{value};"
+        else
+          " = '#{value}';"
+        end
+      end
+
+      def available_keys(table)
+        table.map { |key, value| key }
+      end
     end
   end
 end
