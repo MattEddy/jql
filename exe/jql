@@ -3,7 +3,7 @@
 require 'json_q_l'
 require 'json'
 
-file_path = File.dirname(__FILE__) + "/../" + ARGV.first
+file_path = Dir.pwd + "/" + ARGV.first
 puts file_path
 executor = JsonQL::Executor.new(JSON.parse(File.read(file_path)))
 
