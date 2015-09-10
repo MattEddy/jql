@@ -1,6 +1,6 @@
 module JsonQL
   class Executor
-    def initialize(dataset:)
+    def initialize(dataset)
       @dataset = dataset
     end
 

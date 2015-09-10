@@ -5,7 +5,7 @@ require 'json'
 
 file_path = File.dirname(__FILE__) + "/../" + ARGV.first
 puts file_path
-executor = JsonQL::Executor.new(dataset: JSON.parse(File.read(file_path)))
+executor = JsonQL::Executor.new(JSON.parse(File.read(file_path)))
 
 while line = Readline.readline('jql~>  ', true)
   begin

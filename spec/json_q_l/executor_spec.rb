@@ -5,7 +5,7 @@ module JsonQL
   describe Executor do
     let(:executor) do
       described_class.new(
-        dataset: JSON.parse(File.read(File.dirname(__FILE__) + '/../fixtures/events.json'))
+        JSON.parse(File.read(File.dirname(__FILE__) + '/../fixtures/events.json'))
       )
     end
 
